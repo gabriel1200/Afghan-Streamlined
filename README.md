@@ -3,9 +3,9 @@
 
 - [Why Afghanistan?](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#why-afghanistan)
 - [Before starting](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#before-starting)
-- [Overview](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#overview)
-- [Flattening the json](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#overview)
 - [Querying the Data](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#querying-the-data)
+- [Overview](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#overview)
+- [Flattening the json](https://github.com/gabriel1200/Afghan-Streamlined/blob/master/README.md#flattening-the-json)
 - [Translating the Tweets](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#translating-the-tweets)
 - [Cleaning & Selecting the Data](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#cleaning--selecting-the-data)
 - [Calculating Sentiment](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#calculating-sentiment)
@@ -27,6 +27,160 @@ All scripting was done in **Python**, using **Jupyter Notebook** for live develo
  - A jupyter notebook setup on your local computer.
  -  Access to a CP4D cluster
  -  _Twitter API Developer Key to pull the query_* (For the purposes of the cookbook, we'll link the csv file with our query results instead)
+## Querying the Data
+
+**Skip this step** when creating your cookbook. It's included only for completion and replication purposes.
+Used Twitter API to pull 374k tweets between July 30th and August 30th, all of which were
+-  within 25 kilometers of Kabul
+-  had their location set to Afghanistan
+-  had profiles that were derived to be from Afghanistan
+
+
+```python
+with open('creds.json') as f:
+    creds = json.load(f)
+payload = {}
+
+#loading in key values from the json needed to make the query
+headers = {
+      'Authorization': f"Bearer {creds['bearer_token']}",
+      'Cookie': f"personalization_id={creds['personalization_id']}; guest_id={creds['guest_id']}"
+    }
+
+base_url = f"https://api.twitter.com/1.1/tweets/search/30day/dev.json?fromDate=202109040000&toDate=202110040000&query=point_radius:[-82.3666 23.1136 25mi] -is:retweet -is:reply OR profile_country:AF -is:reply -is:retweet profile_locality:Afghanistan
+'''the query for the data, collecting all tweets 
+for the month of August, within 25 miles of Kabul 
+with a derived location of Afghanistan'''
+
+count = 1
+check=True
+while check==True:
+    if count == 1:
+        url = base_url
+#using the base url for the first request
+    
+    else:
+        url = base_url + "&next={0}".format(next_page)
+#combining the base url and the url extension for a new auery   
+    
+    response = requests.request("GET", url, headers=headers, data = payload)
+#retrieving the query data
+    
+    jsonfile_name = f'data/data{count}.json'
+    
+    d = json.loads(response.text)
+#loading in the json data
+    
+    if d['results']:
+        with open(jsonfile_name, 'w') as f:
+            json.dump(d, f)
+
+#loading the flattened json data into the file
+        next_page = d['next']
+
+#saving the url extension for the next page, used to create the query in the next iteration
+    elif d['error'] or len(d['next']) == 0:
+        print(d)
+        check==False
+        break
+        
+    count += 1
+    time.sleep(5)
+```
+
+
+## Translating the Tweets
+```python
+import pandas as pd
+import re
+from googletrans import Translator
+import googletrans
+import time
+
+googletrans.__version__
+
+#reading in csv
+df = pd.read_csv('data/afghan_csv_secondpull.csv',low_memory=False)
+
+#start process_tweet
+def processTweet(tweet):
+    # process the tweets
+
+    #Convert to lower case
+    tweet = tweet.lower()
+    #Convert www.* or https?://* to URL
+    tweet = re.sub('((www\.[^\s]+)|(https?://[^\s]+))','',tweet)
+    #Convert @username to AT_USER
+    tweet = re.sub('@[^\s]+','',tweet)
+    #Remove additional white spaces
+    tweet = re.sub('[\s]+', ' ', tweet)
+    #Replace #word with word
+    tweet = re.sub(r'#([^\s]+)', r'\1', tweet)
+    #remove punc
+    tweet = re.sub(r'[^\w\s]','',tweet)
+    #trim
+    tweet = tweet.strip('\'"')
+    return tweet
+#creates new dataframe column applyint the processTweet function
+df['text_preprocessing'] = df.text.apply(lambda x: processTweet(str(x)))
+df.head()
+
+
+df.shape
+
+# df.drop(df.columns[0], axis=1,inplace=True)
+# df.head()
+
+translator = Translator()
+#detects tweet language
+def detect_lang(x):
+    detect_lang = translator.detect(x)
+ 
+    return detect_lang.lang
+#determines confidence levin translation
+def detect_confidence(x):
+    detect_confidence = translator.detect(x)
+ 
+    return detect_confidence.confidence
+#translates tweet
+def translate(x):
+    translation = translator.translate(x)  
+    return translation
+
+
+df.shape
+
+
+
+
+start = time.time()
+translation_text = []
+for idx, row in df[['id','text_preprocessing','text']].iterrows():
+    try:
+        #translates text via above funct
+        tmp_translation = translate(row['text_preprocessing'])
+        translation_text.append((row['id'],tmp_translation))
+    except:
+        pass
+    if idx % 1500 == 0:
+        tmp_df = pd.DataFrame(translation_text, columns=['id','translation'])
+        tmp_df.to_csv('data/tmp_translation.csv')
+        t = time.time() - start
+        print(idx, t)
+
+#creating a dataframe from the translated text
+translation_df = pd.DataFrame(translation_text,columns=[['id','translation']])
+
+
+translation_df.head()
+
+translation_df.shape
+#saving the translation as a csv
+translation_df.to_csv('data/translation_3.csv',index=False)
+
+
+translation_df.translation.iloc[0][0]
+``` 
 
 ## Flattening the json
 -Reads in the Json data gathered in the previous step
