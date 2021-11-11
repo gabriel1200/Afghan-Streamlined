@@ -102,8 +102,8 @@ def flatten_json(y):
 
     def flatten(x, name=''):
     # if dictionary, creates a column for every value in the dictionary.
-    '''JSON version 'Person'{'Name':'Gabriel', 
-                           'Location':{'city':'Los Angeles','state':'CA'} '''
+    """JSON version 'Person'{'Name':'Gabriel', 
+                           'Location':{'city':'Los Angeles','state':'CA'} """
     #flattened Person_Name, Person_location_city, Person_location_state
         if type(x) is dict:
             for a in x:
