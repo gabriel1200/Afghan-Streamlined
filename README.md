@@ -30,7 +30,7 @@ All scripting was done in **Python**, using **Jupyter Notebook** for live develo
 **Flattening the JSON **
 -Reads in the Json data gathered in the previous step
 
-'''python
+```python
 import json
 import numpy as np
 import pandas as pd
@@ -53,7 +53,18 @@ def flatten_json(y):
 
     flatten(y)
     return out
-   
-#
+df_list = []
+for filepath in glob.iglob(f'{data_dir}/*.json'):
+    with open(filepath) as json_data:
+        d = json.loads(json_data.read())
+        json_data.close()
+    for i in d['results']:
+        i = flatten_json(i)
+        df_list.append(i)
+    
+df = pd.DataFrame(df_list)
+df.shape
+df.to_csv('data/afghan_csv_full.csv',index=False)
 
-'''
+#
+```
