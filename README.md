@@ -26,3 +26,34 @@ All scripting was done in **Python**, using **Jupyter Notebook** for live develo
  - A jupyter notebook setup on your local computer.
  -  Access to a CP4D cluster
  -  _Twitter API Developer Key to pull the query_* (For the purposes of the cookbook, we'll link the csv file with our query results instead)
+
+**Flattening the JSON **
+-Reads in the Json data gathered in the previous step
+
+'''python
+import json
+import numpy as np
+import pandas as pd
+import glob
+data_dir = 'data/json_data'
+def flatten_json(y):
+    out = {}
+
+    def flatten(x, name=''):
+        if type(x) is dict:
+            for a in x:
+                flatten(x[a], name + a + '_')
+        elif type(x) is list:
+            i = 0
+            for a in x:
+                flatten(a, name + str(i) + '_')
+                i += 1
+        else:
+            out[name[:-1]] = x
+
+    flatten(y)
+    return out
+   
+#
+
+'''
