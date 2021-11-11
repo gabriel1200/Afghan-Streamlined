@@ -4,6 +4,7 @@
 - [Why Afghanistan?](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#why-afghanistan)
 - [Before starting](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#before-starting)
 - [Overview](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#overview)
+- [Flattening the json](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#overview)
 - [Querying the Data](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#querying-the-data)
 - [Translating the Tweets](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#translating-the-tweets)
 - [Cleaning & Selecting the Data](https://github.com/gabriel1200/Afghanistan/blob/master/README.md#cleaning--selecting-the-data)
@@ -27,7 +28,7 @@ All scripting was done in **Python**, using **Jupyter Notebook** for live develo
  -  Access to a CP4D cluster
  -  _Twitter API Developer Key to pull the query_* (For the purposes of the cookbook, we'll link the csv file with our query results instead)
 
-**Flattening the JSON **
+## Flattening the json
 -Reads in the Json data gathered in the previous step
 
 ```python
