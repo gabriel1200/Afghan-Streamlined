@@ -29,7 +29,7 @@ All scripting was done in **Python**, using **Jupyter Notebook** for live develo
  -  _Twitter API Developer Key to pull the query_* (For the purposes of the cookbook, we'll link the csv file with our query results instead)
 ## Querying the Data
 
-**Skip this step** when creating your cookbook. It's included only for completion and replication purposes.
+**Skip this step** when creating your cookbook. It's included only for completion and replication purposes, with Twitter time restrictions and the amount of data returned for the initial query making it impratical. Start from Flattening the json.
 Used Twitter API to pull 374k tweets between July 30th and August 30th, all of which were
 -  within 25 kilometers of Kabul
 -  had their location set to Afghanistan
